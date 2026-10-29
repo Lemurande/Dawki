@@ -8,6 +8,8 @@ Jednoplikowa aplikacja webowa (HTML + CSS + JavaScript, bez bibliotek i bez serw
 
 ## Uruchomienie
 
+Ikona (favicon i ikona ekranu głównego iPhone) jest wbudowana w `index.html`; `icon.png` (512×512) to kopia oryginału.
+
 Plik `index.html` działa lokalnie – wystarczy otworzyć go w przeglądarce (także na telefonie).
 
 ### GitHub Pages (hosting za darmo)
@@ -18,6 +20,15 @@ Plik `index.html` działa lokalnie – wystarczy otworzyć go w przeglądarce (t
 4. Po chwili strona będzie pod adresem `https://<twoja-nazwa>.github.io/<nazwa-repozytorium>/`.
 
 Uwaga: strona na GitHub Pages w darmowym planie jest publiczna. Jeśli nie ma być ogólnodostępna, użyj hostingu wewnętrznego (np. serwer szpitala).
+
+## Instalacja na telefonie
+
+Po wgraniu na GitHub Pages (adres `https://...`) aplikację można dodać do ekranu głównego:
+
+- **Android (Chrome):** menu ⋮ → „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.
+- **iPhone (Safari):** Udostępnij → „Dodaj do ekranu początkowego”.
+
+Pliki `manifest.json`, `sw.js`, `icon-192.png` i `icon-512.png` muszą leżeć obok `index.html`. Service worker działa w trybie „najpierw sieć”: przy połączeniu zawsze ładuje najnowszą wersję, a offline używa ostatniej zapisanej kopii. Po zmianie dawek zwiększ numer w `const CACHE` w `sw.js` (np. `dawki-v2`).
 
 ## Jak zmienić dawki
 
