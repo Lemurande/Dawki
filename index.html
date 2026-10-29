@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kalkulator dawek – anestezjologia dziecięca</title>
+<style>
+:root{--bg:#f7f8fa;--sf:#fff;--tx:#1b1f24;--mu:#5b6570;--bd:#d9dee4;--ac:#0b6bcb;--wn:#b42318;--wb:#fdecea;--ok:#e8f1fc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171a;--sf:#1d2227;--tx:#e8ebee;--mu:#9aa5b1;--bd:#333b44;--ac:#6db3ff;--wn:#ff8a80;--wb:#3a1f1d;--ok:#1b2c40;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171a;--sf:#1d2227;--tx:#e8ebee;--mu:#9aa5b1;--bd:#333b44;--ac:#6db3ff;--wn:#ff8a80;--wb:#3a1f1d;--ok:#1b2c40;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-size:1.3rem;margin:0 0 4px}
+.sub{color:var(--mu);margin:0 0 14px;font-size:.9rem}
+.warn{background:var(--wb);color:var(--wn);border:1px solid var(--wn);border-radius:8px;padding:10px 12px;font-size:.85rem;margin-bottom:14px}
+.ctl{display:flex;gap:12px;align-items:end;flex-wrap:wrap;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+label{display:block;font-size:.8rem;color:var(--mu);margin-bottom:3px}
+input[type=number]{font-size:1.4rem;width:140px;padding:6px 8px;border:2px solid var(--ac);border-radius:8px;background:var(--bg);color:var(--tx)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+button{font:inherit;padding:7px 12px;border:1px solid var(--bd);border-radius:999px;background:var(--sf);color:var(--tx);cursor:pointer}
+button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.wrap{overflow-x:auto;background:var(--sf);border:1px solid var(--bd);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:top}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mu)}
+tr.cat td{background:var(--ok);font-weight:600}
+.dose{font-weight:700;font-size:1.05rem}
+.ml{color:var(--mu);font-size:.82rem}
+.cap{color:var(--wn);font-size:.78rem;font-weight:600}
+.note{color:var(--mu);font-size:.8rem}
+.src{font-size:.8rem;color:var(--mu);margin-top:14px}
+.empty{padding:24px;text-align:center;color:var(--mu)}
+</style>
+</head>
+<body>
+<main>
+<h1>Kalkulator dawek – anestezjologia dziecięca</h1>
+<p class="sub">Dawki wg masy ciała: anestetyki, opioidy, leki przeciwbólowe, przeciwwymiotne, znieczulenie miejscowe.</p>
+<div class="warn"><b>Narzędzie pomocnicze dla personelu medycznego.</b> Nie zastępuje oceny klinicznej. Każdą dawkę zweryfikuj w aktualnej ChPL i w kompendium Medycyny Praktycznej (mp.pl) – treść MP jest płatna i nie była dostępna do automatycznego odczytu, więc dawki oparto na ChPL, konsensusach (SAMBA / PONV) i wytycznych szpitali pediatrycznych. Przed użyciem sprawdź wiek, choroby współistniejące i interakcje.</div>
+
+<div class="ctl">
+<div><label for="w">Masa ciała (kg)</label><input id="w" type="number" inputmode="decimal" min="0.5" max="100" step="0.1" placeholder="np. 12,5" autofocus></div>
+<div><label for="a">Wiek pacjenta</label><div style="display:flex;gap:6px"><input id="a" type="number" inputmode="decimal" min="0" max="18" step="0.5" placeholder="np. 3" style="width:100px"><select id="au" style="font-size:1rem;padding:6px;border:2px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)"><option value="l">lat</option><option value="m">miesięcy</option></select></div></div>
+<div class="tabs" id="tabs"></div>
+</div>
+<div id="msg"></div>
+<div class="wrap"><table><thead><tr><th>Lek</th><th>Droga</th><th>Dawka/kg</th><th>Dawka dla pacjenta</th><th>Uwagi</th></tr></thead><tbody id="tb"></tbody></table></div>
+<p class="src">Źródła: wytyczne ERC/RCUK 2025 (resuscytacja dzieci), ChPL produktów (m.in. ondansetron, paracetamol IV, rokuronium, sugammadeks), konsensus PONV u dzieci (SAMBA), wytyczne NHS Highland (2024), Starship, SCHN. Wartości obliczone po zaokrągleniu do 3 cyfr znaczących; ml dotyczą typowego stężenia handlowego – sprawdź swój preparat.</p>
+</main>
+<script>
+// lo/hi: dawka na kg (mg lub µg wg u); max: limit jednorazowy; c: stężenie (u/ml)
+const D=[
+["Anestetyki i leki wspomagające",[
+{n:"Propofol (indukcja)",r:"IV",u:"mg",lo:2.5,hi:4,c:10,t:"Młodsze dzieci – dawki wyższe. Miareczkować do efektu."},
+{n:"Ketamina",r:"IV",u:"mg",lo:1,hi:2,c:10,t:"IM 4–6 mg/kg. Analgezja subdysocjacyjna 0,1–0,3 mg/kg."},
+{n:"Ketamina",r:"donosowo",u:"mg",lo:3,hi:6,c:50,t:"Sedacja przez atomizer (MAD); analgezja 1–1,5 mg/kg. Maks. ~1 ml na nozdrze – przy dużej objętości podzielić na oba nozdrza. Początek działania 10–20 min."},
+{n:"Etomidat",r:"IV",u:"mg",lo:0.2,hi:0.3,c:2,minA:6,t:"Nie zalecany &lt;6 mies. Hamuje korę nadnerczy."},
+{n:"Midazolam – premedykacja",r:"p.o.",u:"mg",lo:0.25,hi:0.5,max:15,c:null,t:"Podać 20–30 min przed zabiegiem."},
+{n:"Midazolam – sedacja",r:"IV",u:"mg",lo:0.05,hi:0.1,max:5,c:1,t:"Miareczkować powoli; ryzyko depresji oddechowej."},
+{n:"Midazolam – donosowo",r:"donosowo",u:"mg",lo:0.2,hi:0.5,max:10,c:5,t:"Atomizer (MAD), maks. ~1 ml na nozdrze. Początek działania 5–15 min; szczypanie w nosie. Monitorować oddychanie."},
+{n:"Deksmedetomidyna – dawka nasycająca",r:"IV",u:"µg",lo:0.5,hi:1,c:null,t:"Wlew w ciągu 10 min; ryzyko bradykardii."},
+{n:"Rokuronium",r:"IV",u:"mg",lo:0.6,hi:1.2,c:10,t:"1,2 mg/kg – RSI."},
+{n:"Suksametonium",r:"IV",u:"mg",lo:1,hi:2,c:20,t:"Noworodki/niemowlęta – 2 mg/kg. Ryzyko hiperkaliemii, hipertermii złośliwej, miopatii."},
+{n:"Sugammadeks",r:"IV",u:"mg",lo:2,hi:4,c:100,minA:24,t:"≥2. r.ż. 2 mg/kg (blok umiarkowany), 4 mg/kg (głęboki)."},
+{n:"Atropina",r:"IV",u:"mg",lo:0.01,hi:0.02,min:0.1,max:0.5,c:0.5,t:"Dawka minimalna 0,1 mg."}]],
+["Opioidy",[
+{n:"Fentanyl",r:"IV",u:"µg",lo:1,hi:3,c:50,t:"Analgezja 0,5–1 µg/kg; indukcja/intubacja do 3 µg/kg."},
+{n:"Morfina",r:"IV",u:"mg",lo:0.05,hi:0.1,max:10,c:1,t:"Miareczkować; noworodki 0,025–0,05 mg/kg. Rozcieńczyć do 1 mg/ml."},
+{n:"Piritramid",r:"IV",u:"mg",lo:0.05,hi:0.1,c:15,minA:12,t:"Rozcieńczyć; stosować u dzieci &gt;1. r.ż. wg ChPL."},
+{n:"Nalbufina",r:"IV/IM/s.c.",u:"mg",lo:0.1,hi:0.2,max:20,c:10,minA:18,t:w=>"Dawka jednorazowa nie &gt;0,2 mg/kg; powtarzać co 3–6 h. Maks. dobowa 1,6 mg/kg ("+f(1.6*w)+" mg; przy odstępie 4–6 h: 1,2 mg/kg). Brak danych &lt;18. mies. Efekt pułapowy depresji oddechowej; agonista-antagonista – osłabia działanie czystych agonistów."},
+{n:"Remifentanyl – bolus",r:"IV",u:"µg",lo:0.5,hi:1,c:null,t:"Podawać powoli; ryzyko bradykardii i sztywności klatki."},
+{n:"Nalokson (odwrócenie)",r:"IV",u:"mg",lo:0.01,hi:0.01,max:0.4,c:0.4,t:"Można powtarzać; w przedawkowaniu do 0,1 mg/kg."}]],
+["Leki przeciwbólowe nieopioidowe",[
+{n:"Paracetamol",r:"IV",u:"mg",lo:w=>w<10?7.5:15,hi:w=>w<10?7.5:15,max:1000,c:10,t:w=>"Maks. dobowa: "+(w<10?"30":"60")+" mg/kg/d ("+f(Math.min(w<10?30*w:60*w,3000))+" mg), odstęp ≥4–6 h. Noworodki: ChPL."},
+{n:"Ibuprofen",r:"p.o./p.r.",u:"mg",lo:5,hi:10,max:400,c:null,minA:3,t:"Co 6–8 h, maks. 30 mg/kg/d. ≥3 mies. i &gt;5 kg."},
+{n:"Ibuprofen",r:"IV (infuzja)",u:"mg",lo:w=>200/w,hi:w=>w<40?200/w:400/w,max:400,c:4,minW:20,minA:72,t:w=>"Tylko ≥20 kg i ≥6. r.ż. (ChPL, 4 mg/ml). Infuzja 30 min. Dawka stała: 200 mg (20–39 kg), 200–400 mg (≥40 kg). Maks. dobowa: "+(w<30?"600":w<40?"800":"1200")+" mg."},
+{n:"Metamizol",r:"IV/p.o.",u:"mg",lo:8,hi:16,max:1000,c:500,minA:3,t:"Nie &lt;3 mies./5 kg. IV wolno (hipotensja). Agranulocytoza."},
+{n:"Deksametazon (adiuwant)",r:"IV",u:"mg",lo:0.1,hi:0.15,max:5,c:null,t:"Powolny wstrzyk (uczucie ciepła w kroczu)."}]],
+["Leki przeciwwymiotne",[
+{n:"Ondansetron",r:"IV",u:"mg",lo:0.05,hi:0.15,max:4,c:2,t:"ChPL: 0,1 mg/kg (maks. 4 mg), ≥1 mies. Powoli ≥30 s. Unikać przy wydłużonym QT."},
+{n:"Deksametazon",r:"IV",u:"mg",lo:0.06,hi:0.15,max:5,c:4,t:"Konsensus: 0,15 mg/kg, maks. 5 mg (niektóre ośrodki 8 mg). Nie w ryzyku zespołu lizy guza."},
+{n:"Droperydol",r:"IV",u:"mg",lo:0.01,hi:0.025,max:0.75,c:2.5,t:"Rezerwowo, przy niepowodzeniu innych. Ryzyko QT i objawów pozapiramidowych."},
+{n:"Metoklopramid",r:"IV",u:"mg",lo:0.1,hi:0.15,max:10,c:5,minA:12,t:"Tylko &gt;1. r.ż., II rzut (EMA); ryzyko objawów pozapiramidowych. Maks. 0,5 mg/kg/d."}]],
+["Leki ratunkowe i resuscytacja",[
+{n:"Adrenalina – zatrzymanie krążenia",r:"IV/IO",u:"µg",lo:10,hi:10,max:1000,c:100,t:"0,1 ml/kg roztworu 1:10 000 (100 µg/ml). Rytm niedefibrylacyjny: jak najszybciej; defibrylacyjny: po 3. wyładowaniu. Powtarzać co 3–5 min. Przepłukać po podaniu."},
+{n:"Adrenalina – anafilaksja",r:"IM",u:"µg",lo:10,hi:10,max:500,c:1000,t:"0,01 ml/kg roztworu 1:1000 (1 mg/ml). Powtórzyć po 5 min, jeśli brak poprawy. Poza szpitalem: 150 µg (&lt;6 r.ż.), 300 µg (6–12 lat), 500 µg (&gt;12 lat)."},
+{n:"Amiodaron – VF/pVT",r:"IV/IO",u:"mg",lo:5,hi:5,max:300,c:50,t:"Po 3. wyładowaniu (maks. 300 mg). Druga dawka 5 mg/kg po 5. wyładowaniu (maks. 150 mg). Rozcieńczyć w 5% glukozie. Bez rozcieńczenia w NZK podaje się szybko."},
+{n:"Lidokaina (alternatywa dla amiodaronu)",r:"IV/IO",u:"mg",lo:1,hi:1,max:100,c:20,t:"Gdy amiodaron niedostępny."},
+{n:"Magnez (siarczan)",r:"IV/IO",u:"mg",lo:25,hi:50,max:2000,c:null,t:"Hipomagnezemia lub wielokształtny VT (torsade de pointes). Wolno."},
+{n:"Wapń (chlorek 10%)",r:"IV/IO",u:"mg",lo:20,hi:20,max:1000,c:100,t:"0,2 ml/kg. Hipokalcemia, hiperkaliemia, zatrucie blokerami kanału wapniowego. Najlepiej przez żyłę centralną. Zweryfikuj w ERC/PRC."},
+{n:"Glukoza 10%",r:"IV/IO",u:"mg",lo:200,hi:200,c:100,t:"2 ml/kg 10% roztworu przy hipoglikemii. Zweryfikuj w ERC/PRC."},
+{n:"Dantrolen (hipertermia złośliwa)",r:"IV",u:"mg",lo:2.5,hi:2.5,c:null,t:"Powtarzać co 5–10 min do ustąpienia objawów, łącznie do 10 mg/kg. Zweryfikuj w ChPL."},
+{n:"Emulsja lipidowa 20% (LAST)",r:"IV",u:"ml",lo:1.5,hi:1.5,max:100,c:null,t:"Bolus w ciągu 1 min, potem wlew 0,25 ml/kg/min. Zatrucie środkiem miejscowo znieczulającym. Zweryfikuj w wytycznych."},
+{n:"Defibrylacja (VF/pVT)",r:"energia",u:"J",lo:4,hi:4,max:360,c:null,t:"Od 5. wyładowania można eskalować do 8 J/kg (maks. 360 J) w opornym VF/pVT."},
+{n:"Kardiowersja synchroniczna",r:"energia",u:"J",lo:1,hi:2,max:360,c:null,t:"Najpierw 1 J/kg, potem 2 J/kg."}]],
+["Znieczulenie miejscowe – maksymalna dawka całkowita",[
+{n:"Bupiwakaina (bez adrenaliny)",r:"miejsc./blok",u:"mg",lo:2.5,hi:2.5,max:150,c:null,t:"Dawka maks. – nie przekraczać; noworodki ostrożniej."},
+{n:"Ropiwakaina",r:"miejsc./blok",u:"mg",lo:3,hi:3,max:200,c:null,t:"Dawka maks. jednorazowa."},
+{n:"Lidokaina (bez adrenaliny)",r:"miejsc.",u:"mg",lo:5,hi:5,max:300,c:null,t:"Z adrenaliną do 7 mg/kg."}]]
+];
+function f(x){return String(parseFloat(x.toPrecision(3))).replace(".",",")}
+const v=(x,w)=>typeof x==="function"?x(w):x;
+let cat=-1;const ainp=document.getElementById("a"),au=document.getElementById("au");const fa=m=>m<24?m+" mies.":(m/12)+" lat";
+const tabs=document.getElementById("tabs"),tb=document.getElementById("tb"),msg=document.getElementById("msg"),inp=document.getElementById("w");
+function mkTabs(){tabs.innerHTML="";["Wszystkie"].concat(D.map(d=>d[0].split(" ")[0]+" "+(d[0].split(" ")[1]||""))).forEach((t,i)=>{const b=document.createElement("button");b.textContent=t;if(i-1===cat)b.className="on";b.onclick=()=>{cat=i-1;mkTabs();render()};tabs.appendChild(b)})}
+function render(){
+ const w=parseFloat(String(inp.value).replace(",","."));const av=parseFloat(String(ainp.value).replace(",","."));const ageM=(ainp.value!==""&&av>=0)?(au.value==="l"?av*12:av):null;
+ tb.innerHTML="";msg.innerHTML="";
+ if(!(w>0)){tb.innerHTML='<tr><td colspan="5" class="empty">Wpisz masę ciała pacjenta, aby zobaczyć dawki.</td></tr>';return}
+ if(w<0.5||w>100){tb.innerHTML='<tr><td colspan="5" class="empty">Masa poza zakresem 0,5–100 kg. U pacjentów &gt;40–50 kg stosuj dawki dla dorosłych.</td></tr>';return}
+ if(w<5)msg.innerHTML='<div class="warn">Noworodek / mały niemowlak: farmakokinetyka odmienna – dawki często wymagają redukcji; sprawdź ChPL pod kątem wieku.</div>';
+ else if(w>40)msg.innerHTML='<div class="warn">Masa &gt;40 kg: dawka mg/kg może przekroczyć dawkę dla dorosłych – obowiązują limity maksymalne.</div>';
+ D.forEach((g,gi)=>{if(cat>=0&&gi!==cat)return;
+  tb.insertAdjacentHTML("beforeend",'<tr class="cat"><td colspan="5">'+g[0]+'</td></tr>');
+  g[1].forEach(d=>{
+   const bad=[];if(d.minW&&w<d.minW)bad.push("masa &lt;"+d.minW+" kg");if(d.minA&&ageM!==null&&ageM<d.minA)bad.push("wiek &lt;"+fa(d.minA));if(bad.length){tb.insertAdjacentHTML("beforeend",'<tr><td><b>'+d.n+'</b></td><td>'+d.r+'</td><td>—</td><td><div class="cap">Niezalecany: '+bad.join(" / ")+'</div></td><td class="note">'+(typeof d.t==="function"?d.t(w):d.t)+'</td></tr>');return}
+   const lo=v(d.lo,w),hi=v(d.hi,w);
+   let a=lo*w,b=hi*w,capped=false;
+   if(d.min){a=Math.max(a,d.min);b=Math.max(b,d.min)}
+   if(d.max){if(b>d.max){b=d.max;capped=true}if(a>d.max)a=d.max}
+   const same=Math.abs(a-b)<1e-9;
+   const kg=lo===hi?f(lo):f(lo)+"–"+f(hi);
+   const dose=same?f(a)+" "+d.u:f(a)+"–"+f(b)+" "+d.u;
+   const ml=d.c?(same?f(a/d.c)+" ml":f(a/d.c)+"–"+f(b/d.c)+" ml")+" (przy "+f(d.c)+" "+d.u+"/ml)":"";
+   tb.insertAdjacentHTML("beforeend",'<tr><td><b>'+d.n+'</b></td><td>'+d.r+'</td><td>'+kg+' '+d.u+'/kg</td><td><div class="dose">'+dose+'</div>'+(ml?'<div class="ml">'+ml+'</div>':'')+(capped?'<div class="cap">Zastosowano limit dawki maks.</div>':'')+'</td><td class="note">'+(typeof d.t==="function"?d.t(w):d.t)+'</td></tr>');
+  })});
+}
+inp.addEventListener("input",render);ainp.addEventListener("input",render);au.addEventListener("change",render);mkTabs();render();
+</script>
+</body>
+</html>
