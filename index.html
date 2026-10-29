@@ -99,6 +99,21 @@ const D=[
 {n:"Emulsja lipidowa 20% (LAST)",r:"IV",u:"ml",lo:1.5,hi:1.5,max:100,c:null,t:"Bolus w ciągu 1 min, potem wlew 0,25 ml/kg/min. Zatrucie środkiem miejscowo znieczulającym. Zweryfikuj w wytycznych."},
 {n:"Defibrylacja (VF/pVT)",r:"energia",u:"J",lo:4,hi:4,max:360,c:null,t:"Od 5. wyładowania można eskalować do 8 J/kg (maks. 360 J) w opornym VF/pVT."},
 {n:"Kardiowersja synchroniczna",r:"energia",u:"J",lo:1,hi:2,max:360,c:null,t:"Najpierw 1 J/kg, potem 2 J/kg."}]],
+["Sedacja i analgezja ciągła – dawka/kg/h",[
+{n:"Midazolam",r:"IV wlew",u:"mg",h:1,lo:0.03,hi:0.2,max:10,c:null,t:"Zwykle 0,03–0,12 mg/kg/h; w literaturze do 0,2 mg/kg/h. Zaczynać nisko i miareczkować. Noworodki – niższe dawki. Tolerancja i majaczenie przy długim podawaniu."},
+{n:"Propofol",r:"IV wlew",u:"mg",h:1,lo:1,hi:4,c:null,t:"Maks. 4 mg/kg/h, najlepiej &lt;24 h (zespół wlewu propofolu: kwasica, rabdomioliza, hipertrójglicerydemia). ChPL: niezalecany do sedacji na OIT u dzieci ≤16 lat – stosowanie poza wskazaniem."},
+{n:"Deksmedetomidyna",r:"IV wlew",u:"µg",h:1,lo:0.2,hi:1,c:null,t:"Zwykle 0,2–0,7 µg/kg/h; maks. do 1,4 µg/kg/h wg wieku. Bez dawki nasycającej, efekt po ok. 45 min. Bradykardia, hipotensja. U dzieci poza wskazaniem ChPL (off-label)."},
+{n:"Ketamina",r:"IV wlew",u:"mg",h:1,lo:0.25,hi:0.6,c:null,t:"Zwykle 0,3–0,6 mg/kg/h; przy sedacji dysocjacyjnej do 1,5 mg/kg/h. Krótko, zwykle ≤48 h. Ślinotok, majaczenie."},
+{n:"Fentanyl",r:"IV wlew",u:"µg",h:1,lo:0.5,hi:2,max:250,c:null,t:"Zwykle 0,5–2 µg/kg/h; w protokołach PICU do 5 µg/kg/h, zwiększanie co 0,5 µg/kg/h. Bolus doraźny = dawce godzinowej."},
+{n:"Morfina",r:"IV wlew",u:"mg",h:1,lo:0.01,hi:0.04,max:4,c:null,t:"Zwykle 0,01–0,04 mg/kg/h; do 0,1 mg/kg/h. Noworodki – niższe dawki. Ostrożnie przy niewydolności nerek i hipotensji."},
+{n:"Klonidyna",r:"IV wlew",u:"µg",h:1,lo:0.5,hi:2,c:null,t:"Adiuwant / II rzut. Bradykardia, hipotensja; odstawiać stopniowo."}]],
+["Katecholaminy i leki wazoaktywne – dawka/kg/h",[
+{n:"Adrenalina",r:"IV wlew",u:"µg",h:1,lo:0.6,hi:60,c:null,t:"0,01–1 µg/kg/min. Start 0,03–0,1 µg/kg/min, miareczkować; powyżej 0,1 przeważa działanie alfa. Najlepiej linia centralna (martwica przy wynaczynieniu). Reguła szóstki: 0,6×kg mg w 100 ml → 1 ml/h = 0,1 µg/kg/min."},
+{n:"Noradrenalina",r:"IV wlew",u:"µg",h:1,lo:3,hi:60,c:null,t:"0,05–1 µg/kg/min, start 0,05. Zalecany dostęp centralny. Reguła szóstki jak dla adrenaliny."},
+{n:"Dopamina",r:"IV wlew",u:"mg",h:1,lo:0.12,hi:1.2,c:null,t:"2–20 µg/kg/min (2–5 dopaminergicznie, 5–10 beta, &gt;10 alfa). Reguła szóstki: 6×kg mg w 100 ml → 1 ml/h = 1 µg/kg/min. Wynaczynienie – martwica."},
+{n:"Dobutamina",r:"IV wlew",u:"mg",h:1,lo:0.15,hi:1.2,c:null,t:"2,5–20 µg/kg/min (start 5). Reguła szóstki jak dla dopaminy."},
+{n:"Milrynon",r:"IV wlew",u:"µg",h:1,lo:15,hi:45,c:null,t:"0,25–0,75 µg/kg/min; opcjonalnie dawka nasycająca 50 µg/kg w 20 min (hipotensja). Zmniejszyć w niewydolności nerek."},
+{n:"Wazopresyna (argipresyna)",r:"IV wlew",u:"j.m.",h:1,lo:0.02,hi:0.12,c:null,t:"18–120 mj.m./kg/h (0,3–2 mj.m./kg/min). Ryzyko niedokrwienia obwodowego; wyższe dawki wg konsultanta intensywnej terapii."}]],
 ["Znieczulenie miejscowe – maksymalna dawka całkowita",[
 {n:"Bupiwakaina (bez adrenaliny)",r:"miejsc./blok",u:"mg",lo:2.5,hi:2.5,max:150,c:null,t:"Dawka maks. – nie przekraczać; noworodki ostrożniej."},
 {n:"Ropiwakaina",r:"miejsc./blok",u:"mg",lo:3,hi:3,max:200,c:null,t:"Dawka maks. jednorazowa."},
@@ -108,7 +123,7 @@ function f(x){return String(parseFloat(x.toPrecision(3))).replace(".",",")}
 const v=(x,w)=>typeof x==="function"?x(w):x;
 let cat=-1;const ainp=document.getElementById("a"),au=document.getElementById("au");const fa=m=>m<24?m+" mies.":(m/12)+" lat";
 const tabs=document.getElementById("tabs"),tb=document.getElementById("tb"),msg=document.getElementById("msg"),inp=document.getElementById("w");
-function mkTabs(){tabs.innerHTML="";["Wszystkie"].concat(D.map(d=>d[0].split(" ")[0]+" "+(d[0].split(" ")[1]||""))).forEach((t,i)=>{const b=document.createElement("button");b.textContent=t;if(i-1===cat)b.className="on";b.onclick=()=>{cat=i-1;mkTabs();render()};tabs.appendChild(b)})}
+function mkTabs(){tabs.innerHTML="";["Wszystkie"].concat(D.map(d=>d[0].split(" – ")[0])).forEach((t,i)=>{const b=document.createElement("button");b.textContent=t;if(i-1===cat)b.className="on";b.onclick=()=>{cat=i-1;mkTabs();render()};tabs.appendChild(b)})}
 function render(){
  const w=parseFloat(String(inp.value).replace(",","."));const av=parseFloat(String(ainp.value).replace(",","."));const ageM=(ainp.value!==""&&av>=0)?(au.value==="l"?av*12:av):null;
  tb.innerHTML="";msg.innerHTML="";
@@ -126,9 +141,10 @@ function render(){
    if(d.max){if(b>d.max){b=d.max;capped=true}if(a>d.max)a=d.max}
    const same=Math.abs(a-b)<1e-9;
    const kg=lo===hi?f(lo):f(lo)+"–"+f(hi);
-   const dose=same?f(a)+" "+d.u:f(a)+"–"+f(b)+" "+d.u;
+   const hh=d.h?"/h":"";let pm="";if(d.h){const kk=d.u==="µg"?1/60:1000/60,pu=d.u==="j.m."?"mj.m.":"µg";pm='<div class="ml">= '+(lo===hi?f(lo*kk):f(lo*kk)+"–"+f(hi*kk))+' '+pu+'/kg/min</div>'}
+   const dose=same?f(a)+" "+d.u+hh:f(a)+"–"+f(b)+" "+d.u+hh;
    const ml=d.c?(same?f(a/d.c)+" ml":f(a/d.c)+"–"+f(b/d.c)+" ml")+" (przy "+f(d.c)+" "+d.u+"/ml)":"";
-   tb.insertAdjacentHTML("beforeend",'<tr><td><b>'+d.n+'</b></td><td>'+d.r+'</td><td>'+kg+' '+d.u+'/kg</td><td><div class="dose">'+dose+'</div>'+(ml?'<div class="ml">'+ml+'</div>':'')+(capped?'<div class="cap">Zastosowano limit dawki maks.</div>':'')+'</td><td class="note">'+(typeof d.t==="function"?d.t(w):d.t)+'</td></tr>');
+   tb.insertAdjacentHTML("beforeend",'<tr><td><b>'+d.n+'</b></td><td>'+d.r+'</td><td>'+kg+' '+d.u+'/kg'+hh+pm+'</td><td><div class="dose">'+dose+'</div>'+(ml?'<div class="ml">'+ml+'</div>':'')+(capped?'<div class="cap">Zastosowano limit dawki maks.</div>':'')+'</td><td class="note">'+(typeof d.t==="function"?d.t(w):d.t)+'</td></tr>');
   })});
 }
 const th=document.getElementById("th"),mq=matchMedia("(prefers-color-scheme: dark)");

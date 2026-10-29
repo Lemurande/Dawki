@@ -1,5 +1,5 @@
 // Network-first: zawsze próbuje pobrać najnowszą wersję (dawki!), a offline używa ostatniej zapisanej kopii.
-const CACHE = "dawki-v2";
+const CACHE = "dawki-v3";
 const FILES = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
