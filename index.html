@@ -22,7 +22,11 @@ h1{font-size:1.3rem;margin:0 0 4px}
 .ctl{display:flex;gap:12px;align-items:end;flex-wrap:wrap;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 label{display:block;font-size:.8rem;color:var(--mu);margin-bottom:3px}
 input[type=number]{font-size:1.4rem;width:140px;padding:6px 8px;border:2px solid var(--ac);border-radius:8px;background:var(--bg);color:var(--tx)}
-.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.menu{position:relative}
+.tabs{display:flex;flex-direction:column;gap:4px;position:absolute;top:calc(100% + 6px);left:0;min-width:250px;max-width:90vw;max-height:60vh;overflow:auto;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:6px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20}
+.tabs[hidden]{display:none}
+.tabs button{border-radius:8px;text-align:left}
+@media (max-width:600px){input[type=number]{font-size:1.2rem;width:100px}.ctl{padding:8px;gap:8px}h1{font-size:1.1rem}main{padding:10px}}
 button{font:inherit;padding:7px 12px;border:1px solid var(--bd);border-radius:999px;background:var(--sf);color:var(--tx);cursor:pointer}
 button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .wrap{overflow-x:auto;background:var(--sf);border:1px solid var(--bd);border-radius:10px}
@@ -47,7 +51,7 @@ tr.cat td{background:var(--ok);font-weight:600}
 <div class="ctl">
 <div><label for="w">Masa ciała (kg)</label><input id="w" type="number" inputmode="decimal" min="0.5" max="100" step="0.1" placeholder="np. 12,5" autofocus></div>
 <div><label for="a">Wiek pacjenta</label><div style="display:flex;gap:6px"><input id="a" type="number" inputmode="decimal" min="0" max="18" step="0.5" placeholder="np. 3" style="width:100px"><select id="au" style="font-size:1rem;padding:6px;border:2px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)"><option value="l">lat</option><option value="m">miesięcy</option></select></div></div>
-<div class="tabs" id="tabs"></div>
+<div class="menu"><button type="button" id="mb" aria-expanded="false" aria-controls="tabs">☰ Wszystkie grupy ▾</button><div class="tabs" id="tabs" hidden></div></div>
 </div>
 <div id="msg"></div>
 <div class="wrap"><table><thead><tr><th>Lek</th><th>Droga</th><th>Dawka/kg</th><th>Dawka dla pacjenta</th><th>Uwagi</th></tr></thead><tbody id="tb"></tbody></table></div>
@@ -78,6 +82,7 @@ const D=[
 {n:"Nalokson (odwrócenie)",r:"IV",u:"mg",lo:0.01,hi:0.01,max:0.4,c:0.4,t:"Można powtarzać; w przedawkowaniu do 0,1 mg/kg."}]],
 ["Leki przeciwbólowe nieopioidowe",[
 {n:"Paracetamol",r:"IV",u:"mg",lo:w=>w<10?7.5:15,hi:w=>w<10?7.5:15,max:1000,c:10,t:w=>"Maks. dobowa: "+(w<10?"30":"60")+" mg/kg/d ("+f(Math.min(w<10?30*w:60*w,3000))+" mg), odstęp ≥4–6 h. Noworodki: ChPL."},
+{n:"Paracetamol",r:"p.o.",u:"mg",lo:10,hi:15,max:1000,c:40,t:w=>"10 mg/kg co 4 h lub 15 mg/kg co 6 h; maks. 4 dawki/dobę i 60 mg/kg/dobę ("+f(Math.min(60*w,4000))+" mg; maks. 4 g). Lekka–umiarkowana niewydolność wątroby, zespół Gilberta: maks. 2 g/dobę. ml dla zawiesiny 40 mg/ml (200 mg/5 ml); 240 mg/5 ml = 48 mg/ml, 120 mg/5 ml = 24 mg/ml – przelicz."},
 {n:"Ibuprofen",r:"p.o./p.r.",u:"mg",lo:5,hi:10,max:400,c:null,minA:3,t:"Co 6–8 h, maks. 30 mg/kg/d. ≥3 mies. i &gt;5 kg."},
 {n:"Ibuprofen",r:"IV (infuzja)",u:"mg",lo:w=>200/w,hi:w=>w<40?200/w:400/w,max:400,c:4,minW:20,minA:72,t:w=>"Tylko ≥20 kg i ≥6. r.ż. (ChPL, 4 mg/ml). Infuzja 30 min. Dawka stała: 200 mg (20–39 kg), 200–400 mg (≥40 kg). Maks. dobowa: "+(w<30?"600":w<40?"800":"1200")+" mg."},
 {n:"Metamizol",r:"IV/p.o.",u:"mg",lo:8,hi:16,max:1000,c:500,minA:3,t:"Nie &lt;3 mies./5 kg. IV wolno (hipotensja). Agranulocytoza."},
@@ -108,12 +113,12 @@ const D=[
 {n:"Morfina",r:"IV wlew",u:"mg",h:1,lo:0.01,hi:0.04,max:4,c:null,t:"Zwykle 0,01–0,04 mg/kg/h; do 0,1 mg/kg/h. Noworodki – niższe dawki. Ostrożnie przy niewydolności nerek i hipotensji."},
 {n:"Klonidyna",r:"IV wlew",u:"µg",h:1,lo:0.5,hi:2,c:null,t:"Adiuwant / II rzut. Bradykardia, hipotensja; odstawiać stopniowo."}]],
 ["Katecholaminy i leki wazoaktywne – dawka/kg/h",[
-{n:"Adrenalina",r:"IV wlew",u:"µg",h:1,lo:0.6,hi:60,c:null,t:"0,01–1 µg/kg/min. Start 0,03–0,1 µg/kg/min, miareczkować; powyżej 0,1 przeważa działanie alfa. Najlepiej linia centralna (martwica przy wynaczynieniu). Reguła szóstki: 0,6×kg mg w 100 ml → 1 ml/h = 0,1 µg/kg/min."},
-{n:"Noradrenalina",r:"IV wlew",u:"µg",h:1,lo:3,hi:60,c:null,t:"0,05–1 µg/kg/min, start 0,05. Zalecany dostęp centralny. Reguła szóstki jak dla adrenaliny."},
-{n:"Dopamina",r:"IV wlew",u:"mg",h:1,lo:0.12,hi:1.2,c:null,t:"2–20 µg/kg/min (2–5 dopaminergicznie, 5–10 beta, &gt;10 alfa). Reguła szóstki: 6×kg mg w 100 ml → 1 ml/h = 1 µg/kg/min. Wynaczynienie – martwica."},
-{n:"Dobutamina",r:"IV wlew",u:"mg",h:1,lo:0.15,hi:1.2,c:null,t:"2,5–20 µg/kg/min (start 5). Reguła szóstki jak dla dopaminy."},
-{n:"Milrynon",r:"IV wlew",u:"µg",h:1,lo:15,hi:45,c:null,t:"0,25–0,75 µg/kg/min; opcjonalnie dawka nasycająca 50 µg/kg w 20 min (hipotensja). Zmniejszyć w niewydolności nerek."},
-{n:"Wazopresyna (argipresyna)",r:"IV wlew",u:"j.m.",h:1,lo:0.02,hi:0.12,c:null,t:"18–120 mj.m./kg/h (0,3–2 mj.m./kg/min). Ryzyko niedokrwienia obwodowego; wyższe dawki wg konsultanta intensywnej terapii."}]],
+{n:"Adrenalina",r:"IV wlew",u:"µg",h:1,du:"µg",dt:"min",lo:0.6,hi:60,c:null,t:"0,01–1 µg/kg/min. Start 0,03–0,1 µg/kg/min, miareczkować; powyżej 0,1 przeważa działanie alfa. Najlepiej linia centralna (martwica przy wynaczynieniu). Reguła szóstki: 0,6×kg mg w 100 ml → 1 ml/h = 0,1 µg/kg/min."},
+{n:"Noradrenalina",r:"IV wlew",u:"µg",h:1,du:"µg",dt:"min",lo:3,hi:60,c:null,t:"0,05–1 µg/kg/min, start 0,05. Zalecany dostęp centralny. Reguła szóstki jak dla adrenaliny."},
+{n:"Dopamina",r:"IV wlew",u:"mg",h:1,du:"µg",dt:"min",lo:0.12,hi:1.2,c:null,t:"2–20 µg/kg/min (2–5 dopaminergicznie, 5–10 beta, &gt;10 alfa). Reguła szóstki: 6×kg mg w 100 ml → 1 ml/h = 1 µg/kg/min. Wynaczynienie – martwica."},
+{n:"Dobutamina",r:"IV wlew",u:"mg",h:1,du:"µg",dt:"min",lo:0.15,hi:1.2,c:null,t:"2,5–20 µg/kg/min (start 5). Reguła szóstki jak dla dopaminy."},
+{n:"Milrynon",r:"IV wlew",u:"µg",h:1,du:"µg",dt:"min",lo:15,hi:45,c:null,t:"0,25–0,75 µg/kg/min; opcjonalnie dawka nasycająca 50 µg/kg w 20 min (hipotensja). Zmniejszyć w niewydolności nerek."},
+{n:"Wazopresyna (argipresyna)",r:"IV wlew",u:"j.m.",h:1,du:"mj.m.",dt:"min",lo:0.02,hi:0.12,c:null,t:"18–120 mj.m./kg/h (0,3–2 mj.m./kg/min). Ryzyko niedokrwienia obwodowego; wyższe dawki wg konsultanta intensywnej terapii."}]],
 ["Znieczulenie miejscowe – maksymalna dawka całkowita",[
 {n:"Bupiwakaina (bez adrenaliny)",r:"miejsc./blok",u:"mg",lo:2.5,hi:2.5,max:150,c:null,t:"Dawka maks. – nie przekraczać; noworodki ostrożniej."},
 {n:"Ropiwakaina",r:"miejsc./blok",u:"mg",lo:3,hi:3,max:200,c:null,t:"Dawka maks. jednorazowa."},
@@ -121,9 +126,9 @@ const D=[
 ];
 function f(x){return String(parseFloat(x.toPrecision(3))).replace(".",",")}
 const v=(x,w)=>typeof x==="function"?x(w):x;
-let cat=-1;const ainp=document.getElementById("a"),au=document.getElementById("au");const fa=m=>m<24?m+" mies.":(m/12)+" lat";
+let cat=-1;const mb=document.getElementById("mb");const ainp=document.getElementById("a"),au=document.getElementById("au");const fa=m=>m<24?m+" mies.":(m/12)+" lat";
 const tabs=document.getElementById("tabs"),tb=document.getElementById("tb"),msg=document.getElementById("msg"),inp=document.getElementById("w");
-function mkTabs(){tabs.innerHTML="";["Wszystkie"].concat(D.map(d=>d[0].split(" – ")[0])).forEach((t,i)=>{const b=document.createElement("button");b.textContent=t;if(i-1===cat)b.className="on";b.onclick=()=>{cat=i-1;mkTabs();render()};tabs.appendChild(b)})}
+function mkTabs(){tabs.innerHTML="";mb.textContent="☰ "+(cat<0?"Wszystkie grupy":D[cat][0].split(" – ")[0])+" ▾";["Wszystkie"].concat(D.map(d=>d[0].split(" – ")[0])).forEach((t,i)=>{const b=document.createElement("button");b.textContent=t;if(i-1===cat)b.className="on";b.onclick=()=>{cat=i-1;mkTabs();render();tabs.hidden=true;mb.setAttribute("aria-expanded","false");window.scrollTo(0,0)};tabs.appendChild(b)})}
 function render(){
  const w=parseFloat(String(inp.value).replace(",","."));const av=parseFloat(String(ainp.value).replace(",","."));const ageM=(ainp.value!==""&&av>=0)?(au.value==="l"?av*12:av):null;
  tb.innerHTML="";msg.innerHTML="";
@@ -141,10 +146,13 @@ function render(){
    if(d.max){if(b>d.max){b=d.max;capped=true}if(a>d.max)a=d.max}
    const same=Math.abs(a-b)<1e-9;
    const kg=lo===hi?f(lo):f(lo)+"–"+f(hi);
-   const hh=d.h?"/h":"";let pm="";if(d.h){const kk=d.u==="µg"?1/60:1000/60,pu=d.u==="j.m."?"mj.m.":"µg";pm='<div class="ml">= '+(lo===hi?f(lo*kk):f(lo*kk)+"–"+f(hi*kk))+' '+pu+'/kg/min</div>'}
-   const dose=same?f(a)+" "+d.u+hh:f(a)+"–"+f(b)+" "+d.u+hh;
+   let fac=1,du=d.u,dt="";if(d.h){du=d.du||d.u;dt=d.dt||"h";fac=((d.u==="mg"&&du==="µg")||(d.u==="j.m."&&du==="mj.m."))?1000:1;if(dt==="min")fac/=60}
+   const ku=d.h?du+"/kg/"+dt:d.u+"/kg",su=d.h?du+"/"+dt:d.u;
+   const kgs=d.h?(lo===hi?f(lo*fac):f(lo*fac)+"–"+f(hi*fac)):kg;
+   let pm="";if(d.h&&dt==="min"){pm='<div class="ml">≈ '+(same?f(a):f(a)+"–"+f(b))+' '+d.u+'/h (pacjent)</div>'}
+   const dose=same?f(a*fac)+" "+su:f(a*fac)+"–"+f(b*fac)+" "+su;
    const ml=d.c?(same?f(a/d.c)+" ml":f(a/d.c)+"–"+f(b/d.c)+" ml")+" (przy "+f(d.c)+" "+d.u+"/ml)":"";
-   tb.insertAdjacentHTML("beforeend",'<tr><td><b>'+d.n+'</b></td><td>'+d.r+'</td><td>'+kg+' '+d.u+'/kg'+hh+pm+'</td><td><div class="dose">'+dose+'</div>'+(ml?'<div class="ml">'+ml+'</div>':'')+(capped?'<div class="cap">Zastosowano limit dawki maks.</div>':'')+'</td><td class="note">'+(typeof d.t==="function"?d.t(w):d.t)+'</td></tr>');
+   tb.insertAdjacentHTML("beforeend",'<tr><td><b>'+d.n+'</b></td><td>'+d.r+'</td><td>'+kgs+' '+ku+'</td><td><div class="dose">'+dose+'</div>'+pm+(ml?'<div class="ml">'+ml+'</div>':'')+(capped?'<div class="cap">Zastosowano limit dawki maks.</div>':'')+'</td><td class="note">'+(typeof d.t==="function"?d.t(w):d.t)+'</td></tr>');
   })});
 }
 const th=document.getElementById("th"),mq=matchMedia("(prefers-color-scheme: dark)");
@@ -152,7 +160,7 @@ function setTh(t,save){document.documentElement.setAttribute("data-theme",t);th.
 let st=null;try{st=localStorage.getItem("theme")}catch(e){}
 setTh(st||(mq.matches?"dark":"light"),false);
 th.onclick=()=>setTh(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark",true);
-inp.addEventListener("input",render);ainp.addEventListener("input",render);au.addEventListener("change",render);mkTabs();render();
+inp.addEventListener("input",render);ainp.addEventListener("input",render);au.addEventListener("change",render);mb.onclick=e=>{e.stopPropagation();tabs.hidden=!tabs.hidden;mb.setAttribute("aria-expanded",String(!tabs.hidden))};document.addEventListener("click",e=>{if(!tabs.hidden&&!tabs.contains(e.target)){tabs.hidden=true;mb.setAttribute("aria-expanded","false")}});mkTabs();render();
 </script>
 <script>if("serviceWorker"in navigator){window.addEventListener("load",function(){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}})}</script>
 </body>
